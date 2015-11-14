@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"os"
+	"os/user"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -31,8 +32,10 @@ Options:
   --gatk <path>	     Path to the gtak file (jar/tar.bz2) [default: ~/gatk/]
                      It has to be provided by the user, since the license prohibits packaging.
   --data <path>      Directory to use as /data/ directory within eager (default: ~/data)
-  --image <str>      Name of the eager image [default: peltzer/eager]
+  --image <str>      Name of the eager image [default: apeltzer/eager]
   --container <str>  Name of the container spun up (default: eager_$USER)
+  --uid              Use docker-client UID/GID for eager user within container.
+                     This will cope with user rights. (depends on bindmount; boot2docker, local docker deamon...)
   -h --help          Show this screen.
   --version          Show version.`
 	arguments, _ := docopt.Parse(usage, nil, true, "Eager Docker Client 0.9", false)
@@ -53,7 +56,7 @@ Options:
 	if arguments["start"].(bool) {
 		// TODO: Create a struct for arguments?
 		err := startEager(client, arguments["--image"].(string), arguments["--container"].(string),
-			arguments["--data"].(string), arguments["--gatk"].(string))
+			arguments["--data"].(string), arguments["--gatk"].(string), arguments["--uid"].(bool))
 		check(err)
 	}
 	if arguments["stop"].(bool) {
@@ -66,7 +69,7 @@ Options:
 		host := result[0]
 		ssh_key, err := writeSshKey()
 		check(err)
-		cmd := exec.Command("ssh", "-p", "2222", "-i", ssh_key, "-l", "eager", host, "eager")
+		cmd := exec.Command("ssh", "-X", "-p", "2222", "-i", ssh_key, "-l", "eager", host, "eager")
 		err = cmd.Start()
 		check(err)
 		err = cmd.Wait()
@@ -118,31 +121,31 @@ func runEagercli() error {
 
 func writeSshKey() (name string, err error) {
 	content := []byte(`-----BEGIN RSA PRIVATE KEY-----
-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
+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
 -----END RSA PRIVATE KEY-----`)
 	fname, err := ioutil.TempFile("/tmp", "eager_ssh_key_")
 	check(err)
@@ -188,19 +191,29 @@ func gimmeDocker() (cli *docker.Client) {
 	}
 }
 
-func startEager(client *docker.Client, image string, containerName string, data string, gatk string) error {
+func startEager(client *docker.Client, image string, containerName string, data string, gatk string, uid bool) error {
 	exposedCadvPort := map[docker.Port]struct{}{"22/tcp": {}}
 
+	uenv := []string{}
+	if uid {
+		userobj,err	:= user.Current()
+		if err !=  nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		uenv = []string{fmt.Sprintf("DCKR_UID=%s", userobj.Uid), fmt.Sprintf("DCKR_GID=%s", userobj.Gid)}
+	}
 	createContConf := docker.Config{
 		ExposedPorts: exposedCadvPort,
 		Image:        image,
+		Env: 		  uenv,
 	}
 
 	portBindings := map[docker.Port][]docker.PortBinding{
 		"22/tcp": {{HostIP: "0.0.0.0", HostPort: "2222"}}}
 
 	gatkPath, _ := checkForGatk(gatk)
-	gatkBind := fmt.Sprintf("%s:/opt/gatk/", gatkPath)
+	gatkBind := fmt.Sprintf("%s:/gatk/", gatkPath)
 	dataBind := fmt.Sprintf("%s:/data/", data)
 	createContHostConfig := docker.HostConfig{
 		// Figure out where gatk is located and add it to the bind-mounts

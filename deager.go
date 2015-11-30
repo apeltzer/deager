@@ -86,7 +86,7 @@ Options:
 		arguments["--image"] = "peltzer/eager"
 	}
 	
-	if os.Getenv("DOCKER_HORST") == "" {
+	if os.Getenv("DOCKER_HOST") == "" {
 		Error.Println("Please check your docker environment, DOCKER_HOST is not set.")
 		Error.Println("Does the docker CLI work? >> docker ps")
 		os.Exit(1)

@@ -97,7 +97,17 @@ Options:
 		// TODO: Create a struct for arguments?
 		err := startEager(client, arguments["--image"].(string), arguments["--container"].(string),
 			arguments["--data"].(string), arguments["--gatk"].(string), arguments["--uid"].(bool))
-		check(err)
+		if err != nil {
+			err_msg := fmt.Sprintln(err)
+	        match, _ := regexp.MatchString(".*no such host", err_msg)
+			if match {
+				Error.Println("Please check your docker environment, DOCKER_HOST is not set correctly: ", os.Getenv("DOCKER_HOST"))
+				Error.Println("Does the docker CLI work? >> docker ps")
+			} else {
+				Error.Println(err)
+			}
+			os.Exit(1)
+		}
 	}
 	if arguments["stop"].(bool) {
 		err := stopEager(client, arguments["--container"].(string))
@@ -219,13 +229,19 @@ func checkForGatk(path string) (gatkpath string, err error) {
 func gimmeDocker() (cli *docker.Client) {
 	endpoint := os.Getenv("DOCKER_HOST")
 	if os.Getenv("DOCKER_TLS_VERIFY") == "1" {
+		Info.Println("Using TLS")
 		path := os.Getenv("DOCKER_CERT_PATH")
 		ca := fmt.Sprintf("%s/ca.pem", path)
 		cert := fmt.Sprintf("%s/cert.pem", path)
 		key := fmt.Sprintf("%s/key.pem", path)
-		client, _ := docker.NewTLSClient(endpoint, cert, key, ca)
+		client, err := docker.NewTLSClient(endpoint, cert, key, ca)
+		if err != nil {
+			Error.Println("Something is wrong with your docker environemnt.")
+			Trace.Println("Check: DOCKER_HOST=", endpoint)
+		}
 		return client
 	} else {
+		Info.Println("TLS is disabled")
 		client, _ := docker.NewClient(endpoint)
 		return client
 	}

@@ -8,14 +8,48 @@ import (
 	"github.com/fsouza/go-dockerclient"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
+	"io"
 	"os"
+	"log"
 	"os/user"
 	"os/exec"
 	"regexp"
 	"strings"
 )
 
+var (
+    Trace   *log.Logger
+    Info    *log.Logger
+    Warning *log.Logger
+    Error   *log.Logger
+)
+
+func Init(
+    traceHandle io.Writer,
+    infoHandle io.Writer,
+    warningHandle io.Writer,
+    errorHandle io.Writer) {
+
+    Trace = log.New(traceHandle,
+        "TRACE: ",
+        log.Ldate|log.Ltime|log.Lshortfile)
+
+    Info = log.New(infoHandle,
+        "INFO: ",
+        log.Ldate|log.Ltime)
+
+    Warning = log.New(warningHandle,
+        "WARNING: ",
+        log.Ldate|log.Ltime)
+
+    Error = log.New(errorHandle,
+        "ERROR: ",
+        log.Ldate|log.Ltime)
+}
+
+
 func main() {
+	Init(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
 	usage := `Eager Docker Client
 
 Usage:
@@ -50,6 +84,12 @@ Options:
 	}
 	if arguments["--image"] == nil {
 		arguments["--image"] = "peltzer/eager"
+	}
+	
+	if os.Getenv("DOCKER_HORST") == "" {
+		Error.Println("Please check your docker environment, DOCKER_HOST is not set.")
+		Error.Println("Does the docker CLI work? >> docker ps")
+		os.Exit(1)
 	}
 	//fmt.Println(arguments)
 	client := gimmeDocker()

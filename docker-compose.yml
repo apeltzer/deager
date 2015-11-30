@@ -6,5 +6,6 @@ daeger:
      - ~/gatk/:/gatk/
     image: ubuntu:15.10 
     command: /usr/local/src/github.con/apeltzer/deager/amd64/build.sh
+    container_name: deager_build
     environment:
      - GOPATH=/usr/local/

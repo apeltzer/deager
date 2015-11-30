@@ -2,8 +2,8 @@
 
 set -ex
 
-apt-get update 
-apt-get install -y make git golang
+apt-get update -qq
+apt-get install -qq -y make git golang
 
 cd /usr/local/src/github.con/apeltzer/deager/
 go get -d

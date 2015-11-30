@@ -5,7 +5,6 @@ daeger:
      - ~/data/:/data/
      - ~/gatk/:/gatk/
     image: ubuntu:15.10 
-    command: tail -f /dev/null
-    # apt-get update && apt-get install -y make git golang
+    command: /usr/local/src/github.con/apeltzer/deager/amd64/build.sh
     environment:
      - GOPATH=/usr/local/

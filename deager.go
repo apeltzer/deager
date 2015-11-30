@@ -76,8 +76,16 @@ Options:
 	if arguments["--gatk"] == nil {
 		arguments["--gatk"] = fmt.Sprintf("%s/gatk/", os.Getenv("HOME"))
 	}
+	if _, err := os.Stat(arguments["--gatk"].(string)); os.IsNotExist(err) {
+		Error.Println("The gatk directory does not exist: ", arguments["--gatk"])
+		os.Exit(1)
+	}
 	if arguments["--data"] == nil {
 		arguments["--data"] = fmt.Sprintf("%s/data/", os.Getenv("HOME"))
+	}
+	if _, err := os.Stat(arguments["--data"].(string)); os.IsNotExist(err) {
+		Error.Println("The data directory does not exist: ", arguments["--data"])
+		os.Exit(1)
 	}
 	if arguments["--container"] == nil {
 		arguments["--container"] = fmt.Sprintf("eager_%s", os.Getenv("USER"))

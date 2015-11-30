@@ -1,0 +1,11 @@
+daeger:
+    volumes:
+     - ./:/usr/local/src/github.con/apeltzer/deager/ 
+     - /var/run/docker.sock:/var/run/docker.sock
+     - ~/data/:/data/
+     - ~/gatk/:/gatk/
+    image: ubuntu:15.10 
+    command: tail -f /dev/null
+    # apt-get update && apt-get install -y make git golang
+    environment:
+     - GOPATH=/usr/local/

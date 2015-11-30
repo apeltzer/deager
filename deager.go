@@ -223,6 +223,14 @@ func startEager(client *docker.Client, image string, containerName string, data 
 		Privileged:      true,
 	}
 
+	opts := docker.PullImageOptions{
+		Repository: "apeltzer/eager",
+	}
+	err := client.PullImage(opts, docker.AuthConfiguration{})
+	if err != nil {
+		fmt.Println(err)
+	}
+	
 	createContOps := docker.CreateContainerOptions{
 		Name:       containerName,
 		Config:     &createContConf,

@@ -7,46 +7,46 @@ import (
 	"github.com/docopt/docopt-go"
 	"github.com/fsouza/go-dockerclient"
 	"golang.org/x/crypto/ssh"
-	"io/ioutil"
 	"io"
-	"os"
+	"io/ioutil"
 	"log"
-	"os/user"
+	"net"
+	"os"
 	"os/exec"
+	"os/user"
 	"regexp"
 	"strings"
 )
 
 var (
-    Trace   *log.Logger
-    Info    *log.Logger
-    Warning *log.Logger
-    Error   *log.Logger
+	Trace   *log.Logger
+	Info    *log.Logger
+	Warning *log.Logger
+	Error   *log.Logger
 )
 
 func Init(
-    traceHandle io.Writer,
-    infoHandle io.Writer,
-    warningHandle io.Writer,
-    errorHandle io.Writer) {
+	traceHandle io.Writer,
+	infoHandle io.Writer,
+	warningHandle io.Writer,
+	errorHandle io.Writer) {
 
-    Trace = log.New(traceHandle,
-        "TRACE: ",
-        log.Ldate|log.Ltime|log.Lshortfile)
+	Trace = log.New(traceHandle,
+		"TRACE: ",
+		log.Ldate|log.Ltime|log.Lshortfile)
 
-    Info = log.New(infoHandle,
-        "INFO: ",
-        log.Ldate|log.Ltime)
+	Info = log.New(infoHandle,
+		"INFO: ",
+		log.Ldate|log.Ltime)
 
-    Warning = log.New(warningHandle,
-        "WARNING: ",
-        log.Ldate|log.Ltime)
+	Warning = log.New(warningHandle,
+		"WARNING: ",
+		log.Ldate|log.Ltime)
 
-    Error = log.New(errorHandle,
-        "ERROR: ",
-        log.Ldate|log.Ltime)
+	Error = log.New(errorHandle,
+		"ERROR: ",
+		log.Ldate|log.Ltime)
 }
-
 
 func main() {
 	Init(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
@@ -93,7 +93,7 @@ Options:
 	if arguments["--image"] == nil {
 		arguments["--image"] = "peltzer/eager"
 	}
-	
+
 	if os.Getenv("DOCKER_HOST") == "" {
 		Error.Println("Please check your docker environment, DOCKER_HOST is not set.")
 		Error.Println("Does the docker CLI work? >> docker ps")
@@ -107,7 +107,7 @@ Options:
 			arguments["--data"].(string), arguments["--gatk"].(string), arguments["--uid"].(bool))
 		if err != nil {
 			err_msg := fmt.Sprintln(err)
-	        match, _ := regexp.MatchString(".*no such host", err_msg)
+			match, _ := regexp.MatchString(".*no such host", err_msg)
 			if match {
 				Error.Println("Please check your docker environment, DOCKER_HOST is not set correctly: ", os.Getenv("DOCKER_HOST"))
 				Error.Println("Does the docker CLI work? >> docker ps")
@@ -275,8 +275,8 @@ func startEager(client *docker.Client, image string, containerName string, data 
 
 	uenv := []string{}
 	if uid {
-		userobj,err	:= user.Current()
-		if err !=  nil {
+		userobj, err := user.Current()
+		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
@@ -285,7 +285,7 @@ func startEager(client *docker.Client, image string, containerName string, data 
 	createContConf := docker.Config{
 		ExposedPorts: exposedCadvPort,
 		Image:        image,
-		Env: 		  uenv,
+		Env:          uenv,
 	}
 
 	portBindings := map[docker.Port][]docker.PortBinding{
@@ -309,7 +309,7 @@ func startEager(client *docker.Client, image string, containerName string, data 
 	if err != nil {
 		fmt.Println(err)
 	}
-	
+
 	createContOps := docker.CreateContainerOptions{
 		Name:       containerName,
 		Config:     &createContConf,

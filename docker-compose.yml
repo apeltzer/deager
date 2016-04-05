@@ -1,4 +1,4 @@
-daeger:
+deager:
     volumes:
      - ./:/usr/local/src/github.com/apeltzer/deager/ 
      - /var/run/docker.sock:/var/run/docker.sock

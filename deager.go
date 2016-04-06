@@ -63,7 +63,7 @@ gui:      Connect to container and start eager GUI
 run:      Run eagercli within --data directory
 
 Options:
-  --gatk <path>	     Path to the gtak file (jar/tar.bz2) [default: ~/gatk/]
+  --gatk <path>	     Path to the gatk file (jar/tar.bz2) [default: ~/gatk/]
                      It has to be provided by the user, since the license prohibits packaging.
   --data <path>      Directory to use as /data/ directory within eager (default: ~/data)
   --image <str>      Name of the eager image [default: apeltzer/eager]
@@ -97,7 +97,8 @@ Options:
 	if os.Getenv("DOCKER_HOST") == "" {
 		Error.Println("Please check your docker environment, DOCKER_HOST is not set.")
 		Error.Println("Does the docker CLI work? >> docker ps")
-		Error.Println("If it does, please set 'export DOCKER_HOST=unix:///var/run/docker.sock'")
+		Error.Println("If it does, please set 'export DOCKER_HOST=unix:///var/run/docker.sock' (on OSX)")
+		Error.Println("If it does, please set 'export DOCKER_HOST=127.0.0.1' (on Ubuntu/linux)")
 		os.Exit(1)
 	}
 	//fmt.Println(arguments)

@@ -2,6 +2,7 @@
 
 set -ex
 
+dpkg --configure -a
 apt-get update -qq
 apt-get install -qq -y make git golang
 

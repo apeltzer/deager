@@ -63,8 +63,6 @@ gui:      Connect to container and start eager GUI
 run:      Run eagercli within --data directory
 
 Options:
-  --gatk <path>	     Path to the gatk file (jar/tar.bz2) [default: ~/gatk/]
-                     It has to be provided by the user, since the license prohibits packaging.
   --data <path>      Directory to use as /data/ directory within eager (default: ~/data)
   --image <str>      Name of the eager image [default: apeltzer/eager]
   --container <str>  Name of the container spun up (default: eager_$USER)
@@ -73,13 +71,6 @@ Options:
   -h --help          Show this screen.
   --version          Show version.`
 	arguments, _ := docopt.Parse(usage, nil, true, "Eager Docker Client 0.9", false)
-	if arguments["--gatk"] == nil {
-		arguments["--gatk"] = fmt.Sprintf("%s/gatk/", os.Getenv("HOME"))
-	}
-	if _, err := os.Stat(arguments["--gatk"].(string)); os.IsNotExist(err) {
-		Error.Println("The gatk directory does not exist: ", arguments["--gatk"])
-		os.Exit(1)
-	}
 	if arguments["--data"] == nil {
 		arguments["--data"] = fmt.Sprintf("%s/data/", os.Getenv("HOME"))
 	}
@@ -106,7 +97,7 @@ Options:
 	if arguments["start"].(bool) {
 		// TODO: Create a struct for arguments?
 		err := startEager(client, arguments["--image"].(string), arguments["--container"].(string),
-			arguments["--data"].(string), arguments["--gatk"].(string), arguments["--uid"].(bool))
+			arguments["--data"].(string), arguments["--uid"].(bool))
 		if err != nil {
 			err_msg := fmt.Sprintln(err)
 			match, _ := regexp.MatchString(".*no such host", err_msg)
@@ -235,22 +226,6 @@ func check(e error) {
 	}
 }
 
-func checkForGatk(path string) (gatkpath string, err error) {
-	files, _ := ioutil.ReadDir(path)
-	gpath := ""
-	for _, f := range files {
-		match, _ := regexp.MatchString("genomeanalysistk", strings.ToLower(f.Name()))
-		if match {
-			gpath = path
-		}
-	}
-	if gpath == "" {
-		errstr := fmt.Sprintf("Could not find 'GenomeAnalysisTK.*' in '%s'", path)
-		return "", errors.New(errstr)
-	}
-	return gpath, nil
-}
-
 func gimmeDocker() (cli *docker.Client) {
 	endpoint := os.Getenv("DOCKER_HOST")
 	if os.Getenv("DOCKER_TLS_VERIFY") == "1" {
@@ -272,7 +247,7 @@ func gimmeDocker() (cli *docker.Client) {
 	}
 }
 
-func startEager(client *docker.Client, image string, containerName string, data string, gatk string, uid bool) error {
+func startEager(client *docker.Client, image string, containerName string, data string, uid bool) error {
 	exposedCadvPort := map[docker.Port]struct{}{"22/tcp": {}}
 
 	uenv := []string{}
@@ -293,8 +268,6 @@ func startEager(client *docker.Client, image string, containerName string, data 
 	portBindings := map[docker.Port][]docker.PortBinding{
 		"22/tcp": {{HostIP: "0.0.0.0", HostPort: "2222"}}}
 
-	gatkPath, _ := checkForGatk(gatk)
-	gatkBind := fmt.Sprintf("%s:/gatk/", gatkPath)
 	dataBind := fmt.Sprintf("%s:/data/", data)
 	createContHostConfig := docker.HostConfig{
 		// Figure out where gatk is located and add it to the bind-mounts

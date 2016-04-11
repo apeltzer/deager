@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"github.com/docopt/docopt-go"
 	"github.com/fsouza/go-dockerclient"
@@ -15,7 +14,6 @@ import (
 	"os/exec"
 	"os/user"
 	"regexp"
-	"strings"
 )
 
 var (
@@ -271,7 +269,7 @@ func startEager(client *docker.Client, image string, containerName string, data 
 	dataBind := fmt.Sprintf("%s:/data/", data)
 	createContHostConfig := docker.HostConfig{
 		// Figure out where gatk is located and add it to the bind-mounts
-		Binds:           []string{gatkBind, dataBind},
+		Binds:           []string{dataBind},
 		PortBindings:    portBindings,
 		PublishAllPorts: false,
 		Privileged:      true,

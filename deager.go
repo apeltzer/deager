@@ -321,8 +321,24 @@ func stopEager(client *docker.Client, containerName string) error {
 }
 
 func getDockerHostIP() (host string, err error) {
-	re1, err := regexp.Compile(`(\d+\.\d+\.\d+\.\d+)`)
-	result := re1.FindStringSubmatch(os.Getenv("DOCKER_HOST"))
-	ip := result[0]
-	return ip, nil
+	var ip_addr string
+
+		re1, err := regexp.Compile(`(\d+\.\d+\.\d+\.\d+)`)
+		if err == nil {
+			host, _ := os.Hostname()
+			addrs, _ := net.LookupIP(host)
+			for _, addr := range addrs {
+				if ipv4 := addr.To4(); ipv4 != nil {
+					ip_addr = ipv4.String()
+				}
+			}
+			Info.Printf("Extracted '%s' by looking up IP address", ip_addr)
+		} else {
+			result := re1.FindStringSubmatch(os.Getenv("DOCKER_HOST"))
+			ip_addr = result[0]
+			Info.Printf("Extracted '%s' from DOCKER_HOST", ip_addr)
+		}
+	return ip_addr, nil
 }
+
+		

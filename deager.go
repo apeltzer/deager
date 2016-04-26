@@ -87,7 +87,6 @@ Options:
 		Error.Println("Please check your docker environment, DOCKER_HOST is not set.")
 		Error.Println("Does the docker CLI work? >> docker ps")
 		Error.Println("If it does, please set 'export DOCKER_HOST=unix:///var/run/docker.sock' (on OSX)")
-		Error.Println("If it does, please set 'export DOCKER_HOST=127.0.0.1' (on Ubuntu/linux)")
 		os.Exit(1)
 	}
 	//fmt.Println(arguments)

@@ -131,8 +131,8 @@ Options:
 		}
 		ssh_key, err := writeSshKey()
 		check(err)
-		Info.Printf("ssh -Y -p 2222 -i %s -l eager %s eager\n", ssh_key, ip_addr)
-		cmd := exec.Command("ssh", "-Y", "-p", "2222", "-i", ssh_key, "-l", "eager", ip_addr, "eager")
+		Info.Printf("ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -Y -p 2222 -i %s -l eager %s eager\n", ssh_key, ip_addr)
+		cmd := exec.Command("ssh", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", "-Y", "-p", "2222", "-i", ssh_key, "-l", "eager", ip_addr, "eager")
 		err = cmd.Start()
 		check(err)
 		err = cmd.Wait()
